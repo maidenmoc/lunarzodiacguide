@@ -21,8 +21,8 @@
             const [showForm, setShowForm] = React.useState(true);
             const [error, setError] = React.useState(null);
 
-            const API_KEY = "d644e0bc5acc4180b8d2034732da8dfe";
-            const LOCATION = "La Grande, Oregon";
+            const APPLICATION_ID = "df5a283a-2c7a-43de-996d-600d880a531d";
+            const APPLICATION_SECRET = "2291c358580ce79f136bedc2c188ffac37898fc4c624f9d9fde7016eab";
 
             const calculateZodiac = (month, day) => {
                 const zodiacSigns = [
@@ -51,7 +51,21 @@
 
             const getMoonPhase = async () => {
                 try {
-                    const response = await fetch(`http://api.weatherstack.com/current?access_key=${API_KEY}&query=${LOCATION}`);
+                    const response = await fetch("https://api.astronomyapi.com/api/v2/bodies/positions/moon", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Basic ${btoa(`${APPLICATION_ID}:${APPLICATION_SECRET}`)}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "latitude": 45.3246, // Latitude of La Grande, Oregon
+                            "longitude": -118.0877, // Longitude of La Grande, Oregon
+                            "elevation": 823, // Elevation of La Grande, Oregon in meters
+                            "from_date": new Date().toISOString().split('T')[0],
+                            "to_date": new Date().toISOString().split('T')[0]
+                        })
+                    });
+
                     const data = await response.json();
 
                     if (data.error) {
@@ -60,11 +74,7 @@
                         return "Unknown Phase";
                     }
 
-                    // Assuming the moon phase info is part of the API's response in some form
-                    const moonPhase = data.current.weather_descriptions.includes("Moon") 
-                        ? data.current.weather_descriptions[0] 
-                        : "Unknown Phase";
-
+                    const moonPhase = data.data.table.rows[0].cells[0].moon.phase.name;
                     return moonPhase;
                 } catch (error) {
                     console.error("Error fetching moon phase:", error);
