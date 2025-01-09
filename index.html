@@ -21,9 +21,6 @@
             const [showForm, setShowForm] = React.useState(true);
             const [error, setError] = React.useState(null);
 
-            const APPLICATION_ID = "df5a283a-2c7a-43de-996d-600d880a531d";
-            const APPLICATION_SECRET = "2291c358580ce79f136bedc2c188ffac37898fc4c624f9d9fde7016eab";
-
             const calculateZodiac = (month, day) => {
                 const zodiacSigns = [
                     { sign: "Capricorn", start: "12-22", end: "01-19" },
@@ -51,13 +48,7 @@
 
             const getMoonPhase = async () => {
                 try {
-                    const response = await fetch("https://api.astronomyapi.com/api/v2/bodies/positions/moon", {
-                        method: "GET",
-                        headers: {
-                            "Authorization": `Basic ${btoa(`${APPLICATION_ID}:${APPLICATION_SECRET}`)}`,
-                            "Content-Type": "application/json",
-                        },
-                    });
+                    const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=45.3246&longitude=-118.0877&daily=moon_phase&timezone=auto");
 
                     if (!response.ok) {
                         throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -65,22 +56,11 @@
 
                     const data = await response.json();
 
-                    if (
-                        data &&
-                        data.data &&
-                        data.data.table &&
-                        data.data.table.rows &&
-                        data.data.table.rows[0] &&
-                        data.data.table.rows[0].cells &&
-                        data.data.table.rows[0].cells[0] &&
-                        data.data.table.rows[0].cells[0].moon &&
-                        data.data.table.rows[0].cells[0].moon.phase &&
-                        data.data.table.rows[0].cells[0].moon.phase.name
-                    ) {
-                        return data.data.table.rows[0].cells[0].moon.phase.name;
+                    if (!data.daily || !data.daily.moon_phase || data.daily.moon_phase.length === 0) {
+                        throw new Error("Unexpected API response format.");
                     }
 
-                    throw new Error("Unexpected API response format.");
+                    return data.daily.moon_phase[0];
                 } catch (error) {
                     console.error("Error fetching moon phase:", error);
                     setError("Failed to fetch moon phase data. Please try again later.");
