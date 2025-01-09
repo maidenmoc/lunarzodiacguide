@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunar Coworker Guide</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        function App() {
+            const [selectedMonth, setSelectedMonth] = React.useState('');
+            const [selectedDay, setSelectedDay] = React.useState('');
+            const [coworkerName, setCoworkerName] = React.useState('');
+            const [result, setResult] = React.useState(null);
+            const [showForm, setShowForm] = React.useState(true);
+
+            const calculateZodiac = (month, day) => {
+                const zodiacSigns = [
+                    { sign: "Capricorn", start: "12-22", end: "01-19" },
+                    { sign: "Aquarius", start: "01-20", end: "02-18" },
+                    { sign: "Pisces", start: "02-19", end: "03-20" },
+                    { sign: "Aries", start: "03-21", end: "04-19" },
+                    { sign: "Taurus", start: "04-20", end: "05-20" },
+                    { sign: "Gemini", start: "05-21", end: "06-20" },
+                    { sign: "Cancer", start: "06-21", end: "07-22" },
+                    { sign: "Leo", start: "07-23", end: "08-22" },
+                    { sign: "Virgo", start: "08-23", end: "09-22" },
+                    { sign: "Libra", start: "09-23", end: "10-22" },
+                    { sign: "Scorpio", start: "10-23", end: "11-21" },
+                    { sign: "Sagittarius", start: "11-22", end: "12-21" }
+                ];
+
+                const birthDate = `${month}-${day}`;
+                const zodiac = zodiacSigns.find(sign => 
+                    (birthDate >= sign.start && birthDate <= sign.end) ||
+                    (sign.start > sign.end && (birthDate >= sign.start || birthDate <= sign.end))
+                );
+
+                return zodiac ? zodiac.sign : "Unknown";
+            };
+
+            const getMoonPhase = async () => {
+                try {
+                    const response = await fetch("https://api.farmsense.net/v1/moonphases/");
+                    const data = await response.json();
+                    const today = new Date();
+                    const currentPhase = data.find(phase => {
+                        const phaseDate = new Date(phase.Date);
+                        return phaseDate.toDateString() === today.toDateString();
+                    });
+                    return currentPhase ? currentPhase.Phase : "Unknown Phase";
+                } catch (error) {
+                    console.error("Error fetching moon phase:", error);
+                    return "Unknown Phase";
+                }
+            };
+
+            const handleClick = async () => {
+                if (!selectedMonth || !selectedDay) {
+                    setResult("Please select your coworker's birth month and day");
+                    return;
+                }
+
+                const zodiacSign = calculateZodiac(selectedMonth, selectedDay);
+                const moonPhase = await getMoonPhase();
+
+                // Now create recommendations based on zodiac and moon phase
+                const recommendations = {
+                    "Capricorn": {
+                        "New Moon": "Focus on long-term goals and strategic planning.",
+                        "Full Moon": "Collaborate with others and seek feedback."
+                    },
+                    "Aquarius": {
+                        "New Moon": "Work on innovative ideas and brainstorming.",
+                        "Full Moon": "Engage in team activities and open discussions."
+                    }
+                    // Add more recommendations for each zodiac and moon phase
+                };
+
+                setResult({
+                    zodiacSign,
+                    moonPhase,
+                    recommendations: recommendations[zodiacSign] && recommendations[zodiacSign][moonPhase]
+                });
+
+                setShowForm(false);
+            };
+
+            const handleReset = () => {
+                setResult(null);
+                setSelectedMonth('');
+                setSelectedDay('');
+                setCoworkerName('');
+                setShowForm(true);
+            };
+
+            return (
+                <div className="p-6 max-w-2xl mx-auto bg-white">
+                    <h1 className="text-2xl font-bold text-gray-800 mb-6">Lunar Coworker Guide</h1>
+                    
+                    {showForm ? (
+                        <div className="mb-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Coworker's Name (Optional)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={coworkerName}
+                                    onChange={(e) => setCoworkerName(e.target.value)}
+                                    placeholder="Enter their name"
+                                    className="w-full p-2 border rounded-md"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Coworker's Birthday
+                                </label>
+                                <div className="flex gap-2">
+                                    <select 
+                                        value={selectedMonth}
+                                        onChange={(e) => setSelectedMonth(e.target.value)}
+                                        className="w-1/2 p-2 border rounded-md"
+                                    >
+                                        <option value="">Month</option>
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                    <select
+                                        value={selectedDay}
+                                        onChange={(e) => setSelectedDay(e.target.value)}
+                                        className="w-1/2 p-2 border rounded-md"
+                                    >
+                                        <option value="">Day</option>
+                                        {[...Array(31)].map((_, i) => (
+                                            <option key={i + 1} value={i + 1}>
+                                                {i + 1}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleClick}
+                                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                            >
+                                Get Today's Insights
+                            </button>
+                        </div>
+                    ) : null}
+
+                    {result && typeof result === 'string' ? (
+                        <div className="p-3 bg-red-50 text-red-600 rounded-md">
+                            {result}
+                        </div>
+                    ) : result && (
+                        <div className="space-y-6">
+                            <div className="text-sm text-gray-600">
+                                {coworkerName ? `${coworkerName}'s` : "Their"} Zodiac: {result.zodiacSign}
+                            </div>
+
+                            <div className="p-4 bg-blue-50 rounded-md">
+                                <h2 className="text-xl font-semibold text-blue-800 mb-4">
+                                    {result.zodiacSign}'s Lunar Energy: {result.moonPhase}
+                                </h2>
+                                <p className="text-gray-700
