@@ -56,28 +56,22 @@
                         return phaseDate.toDateString() === today.toDateString();
                     });
 
-                    console.log("Moon Phase Data:", data); // Debugging output
                     return currentPhase ? currentPhase.Phase : "Unknown Phase";
                 } catch (error) {
-                    console.error("Error fetching moon phase:", error);
                     setError("Failed to fetch moon phase data.");
-                    return "Full Moon"; // Fallback to Full Moon if the API fails
+                    return "Full Moon"; // Fallback phase
                 }
             };
 
             const handleClick = async () => {
                 if (!selectedMonth || !selectedDay) {
-                    setResult("Please select your coworker's birth month and day");
+                    setResult("Please select your coworker's birth month and day.");
                     return;
                 }
 
                 const zodiacSign = calculateZodiac(selectedMonth, selectedDay);
                 const moonPhase = await getMoonPhase();
 
-                console.log("Zodiac:", zodiacSign); // Debugging output
-                console.log("Moon Phase:", moonPhase); // Debugging output
-
-                // Now create recommendations based on zodiac and moon phase
                 const recommendations = {
                     "Capricorn": {
                         "New Moon": "Focus on long-term goals and strategic planning.",
@@ -87,7 +81,6 @@
                         "New Moon": "Work on innovative ideas and brainstorming.",
                         "Full Moon": "Engage in team activities and open discussions."
                     },
-                    // Add more recommendations for each zodiac and moon phase
                     "Pisces": {
                         "New Moon": "Take time for introspection and creative projects.",
                         "Full Moon": "Express your emotions and connect with others."
@@ -97,7 +90,7 @@
                 setResult({
                     zodiacSign,
                     moonPhase,
-                    recommendations: recommendations[zodiacSign] && recommendations[zodiacSign][moonPhase]
+                    recommendations: recommendations[zodiacSign]?.[moonPhase] || "No specific recommendation available."
                 });
 
                 setShowForm(false);
@@ -141,18 +134,11 @@
                                         className="w-1/2 p-2 border rounded-md"
                                     >
                                         <option value="">Month</option>
-                                        <option value="1">January</option>
-                                        <option value="2">February</option>
-                                        <option value="3">March</option>
-                                        <option value="4">April</option>
-                                        <option value="5">May</option>
-                                        <option value="6">June</option>
-                                        <option value="7">July</option>
-                                        <option value="8">August</option>
-                                        <option value="9">September</option>
-                                        <option value="10">October</option>
-                                        <option value="11">November</option>
-                                        <option value="12">December</option>
+                                        {[...Array(12)].map((_, i) => (
+                                            <option key={i + 1} value={i + 1}>
+                                                {new Date(0, i).toLocaleString('default', { month: 'long' })}
+                                            </option>
+                                        ))}
                                     </select>
                                     <select
                                         value={selectedDay}
@@ -198,14 +184,9 @@
                                 <h2 className="text-xl font-semibold text-blue-800 mb-4">
                                     {coworkerName ? `${coworkerName}'s` : "Their"} Lunar Energy: {result.moonPhase}
                                 </h2>
-                                
-                                <div className="space-y-4">
-                                    <div>
-                                        <p className="text-gray-700">
-                                            Today, they're likely feeling in a <strong>{result.moonPhase}</strong> phase and their energy is <strong>{result.recommendations}</strong>.
-                                        </p>
-                                    </div>
-                                </div>
+                                <p className="text-gray-700">
+                                    Recommendation: <strong>{result.recommendations}</strong>
+                                </p>
                             </div>
 
                             <div className="p-4">
