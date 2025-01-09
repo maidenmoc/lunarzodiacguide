@@ -55,12 +55,13 @@
                         const phaseDate = new Date(phase.Date);
                         return phaseDate.toDateString() === today.toDateString();
                     });
+
                     console.log("Moon Phase Data:", data); // Debugging output
                     return currentPhase ? currentPhase.Phase : "Unknown Phase";
                 } catch (error) {
                     console.error("Error fetching moon phase:", error);
                     setError("Failed to fetch moon phase data.");
-                    return "Unknown Phase";
+                    return "Full Moon"; // Fallback to Full Moon if the API fails
                 }
             };
 
@@ -85,8 +86,12 @@
                     "Aquarius": {
                         "New Moon": "Work on innovative ideas and brainstorming.",
                         "Full Moon": "Engage in team activities and open discussions."
-                    }
+                    },
                     // Add more recommendations for each zodiac and moon phase
+                    "Pisces": {
+                        "New Moon": "Take time for introspection and creative projects.",
+                        "Full Moon": "Express your emotions and connect with others."
+                    }
                 };
 
                 setResult({
@@ -180,4 +185,44 @@
                     )}
 
                     {result && typeof result === 'string' ? (
-                        <div className="p-3 bg-red-50 text-red
+                        <div className="p-3 bg-red-50 text-red-600 rounded-md">
+                            {result}
+                        </div>
+                    ) : result && (
+                        <div className="space-y-6">
+                            <div className="text-sm text-gray-600">
+                                Updated for: {new Date().toLocaleDateString()}
+                            </div>
+
+                            <div className="p-4 bg-blue-50 rounded-md">
+                                <h2 className="text-xl font-semibold text-blue-800 mb-4">
+                                    {coworkerName ? `${coworkerName}'s` : "Their"} Lunar Energy: {result.moonPhase}
+                                </h2>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <p className="text-gray-700">
+                                            Today, they're likely feeling in a <strong>{result.moonPhase}</strong> phase and their energy is <strong>{result.recommendations}</strong>.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4">
+                                <button 
+                                    onClick={handleReset}
+                                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 text-lg font-medium"
+                                >
+                                    ↺ Check Another Coworker
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
